@@ -3,9 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from sklearn.linear_model import LinearRegression
 
-st.title("Prueba de funcionalidades con streamlit")
+st.title("Minimización a la aversión del riesgo en bitcoins")
 
 """
 ## Esto es markdown
