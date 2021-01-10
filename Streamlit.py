@@ -10,17 +10,15 @@ st.image(im_bit, width = 325)
 
 
 '''
-Esta página te ayuda a predecir el precio del _bitcoin_, no ...
+Esta página te brindará información para ayudarte a decidir si invertir o no en un bitcoin, ofreciendote el historico de los precios, una aproximación del precio en el futuro y una medida del riesgo que implica invertir en este tipo de activos. Pero primero veamos algunas definiciones. 
 ### ¿Qué es el _bitcoin_?
-Bitcoin es una nueva moneda que fue creada en 2009 por una persona desconocida 
-usando el alias Satoshi Nakamoto. Las transacciones se realizan sin intermediarios,
- es decir, ¡sin bancos! Bitcoin se puede utilizar para reservar hoteles en Expedia,
- comprar muebles en Overstock y comprar juegos de Xbox. Pero gran parte de la razón
- por la que se habla tanto del bitcoin se trata de hacerse rico mediante el 
- intercambio. La criptomoneda aumentó un 9% a un nuevo máximo histórico de 
- aproximadamente 19.860 dólares este lunes. Lo que superó el récord anterior 
- de 19.783 dólares en diciembre de 2017.
+El Bitcoin es la primera divisa digital creada en 2009 por Satoshi Nakamoto (desarrollador anónimo de la criptomoneda bajo este pseudónimo). La idea nació como una solución al problema del doble gasto producido por los intermediarios en una transacción y así, los pagos en línea son enviados directamente entre uno a otro usuario.
+Ya que el costo de mediación incrementa los costos de transacción, elimina la posibilidad de pequeñas transacciones, si consideramos un costo más amplio en la pérdida de la habilidad de hacer pagos no-reversibles por servicios no-reversibles, el costo es aún mayor. Esta solución ofrecía una posibilidad de revertir, y con esto mayor confianza, es esta confianza la que hizo que esta moneda ganara popularidad con el tiempo.
 
+Esta moneda ya se puede utilizar de diferentes formas como reservar hoteles en Expedia,
+comprar muebles en Overstock, o comprar juegos de Xbox, etc. Pero gran parte de la razón por la 
+que se habla tanto del bitcoin es por el intercambio, comprando y vendiendo estos activos 
+se pueden generar ganancias. 
 '''
 
 # ------------------------------------------------------ Codigo
@@ -31,40 +29,10 @@ This is some _markdown_.
 '''
 
 df = pd.read_csv('data.csv')
-price = df.iloc[:,-1]
-plt.fill_between( x, y, color="skyblue", alpha=0.2)
-plt.plot(x, y, color="Slateblue", alpha=0.6)
+percent = int(df.iloc[-1,-1])/int(df.iloc[0,-1])
+percent
 
-fig = sns.relplot(data = tips, x = "total_bill", y = "tip", col = "time", hue = "smoker", size = "size")
-st.pyplot(fig)
-
-"""
-
-## Renderizando de codigo de Python 
-
-Primero veamos una lista:
-"""
-lista= ["Hola",1,2,[-1,1]]
+price = df.iloc[:,[0,-1]]
+price
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-st.write("Lista: ", lista)
