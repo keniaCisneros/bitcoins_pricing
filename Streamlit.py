@@ -54,25 +54,29 @@ def get_riesgo(df):
 page_bg_img = '''
 <style>
 body {
-background-image: url("https://image.freepik.com/vector-gratis/ilustracion-azul-abstracta-diseno-fondo-tecnologia_1035-14977.jpg");
+background-image: url("https://w.wallhaven.cc/full/47/wallhaven-477m53.png");
 background-size: cover;
 }
 </style>
 '''
 
 st.markdown(page_bg_img, unsafe_allow_html=True)
-st.title("_Bitcoins_")
+#st.title("_Bitcoins_")
+st.markdown("<h1 style='color: black;'>Pricing de Bitcoin</h3>",unsafe_allow_html=True)
 
+st.markdown("<h3 style='text-align: center; color: black;'>Advertencia</h3>",unsafe_allow_html=True)
 '''
-El Bitcoin es una nueva moneda experimental que está en desarrollo activo, y con el tiempo se ha hecho más conocida
-y ha creciendo con su uso constante. Como tal, su futuro no se puede predecir por nadie debido a que existen 
-circunstancias externas que no se pueden medir, como son las sociales, politicas, globales, eventos
-inesperados como la presente pandemia. Estos eventos afectan de manera directa al precio del bitcoin
-gracias al miedo que tienen los inversionistas de perder su dinero. Este miedo se ve reflejado en las ventas masivas de las divisas.
+El Bitcoin es una nueva moneda experimental que está en desarrollo activo, que  con el tiempo ha estado creciendo con su uso constante. 
+Como tal,su valor en el futuro no se puede predecir con exactitud  debido a que existen 
+circunstancias externas que no son medibles, como son las sociales, politicas, globales o eventos
+inesperados como la presente pandemia. 
 
 Sin embargo, es posible tener un precio aproximado al precio que tendrá el bitcoin, utilizando variables
 que afectan la volsa de valores como el precio del petroleo, oro, etc. y variables relacionadas con 
-los Block chains de las criptomonedas, pues la cantidad de bitcoins disponibles depende de ello.
+los Block chains de las criptomonedas, pues la cantidad de bitcoins disponibles depende de ello. 
+Es por eso que el modelo solo dara una buena estimacion bajo circunstancias normales y no contemplará estos cambios externos antes mencionados
+
+
 
 Si aún no estas tan familiarizado con lo que es un Bitcoin o un Block chain puedes pulzar los botones 
 y te redirigiremos a una página con estos detalles.
@@ -107,10 +111,6 @@ with col2:
 #---------------------------------------------------------------------------------------------------------
 
 '''
-Aún que el precio del bitcoin ha idó en aumento y no ha tenido precios tan bajos desde el 2017 y es
-por ello que se estima que la moneda gané aún más popularidad con el tiempo, y cada vez más personas 
-inviertan. 
-
 Con ayuda de la siguente gráfica puedes explorar los datos históricos que ha tenido el bitcoin, 
 examinando solamente un periodo o el histórico completo para que te des una idea de la volatilidad
 de esta moneda y la tomes en cuenta al momento de tomar una decisión.
