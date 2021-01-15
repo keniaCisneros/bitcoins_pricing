@@ -62,10 +62,13 @@ background-size: cover;
 
 st.markdown(page_bg_img, unsafe_allow_html=True)
 #st.title("_Bitcoins_")
-st.markdown("<h1 style='color: black;'>Pricing de Bitcoin</h3>",unsafe_allow_html=True)
+st.markdown("<h1 style='color: black;'>Pricing de Bitcoin</h1>",unsafe_allow_html=True)
 
-st.markdown("<h3 style='text-align: center; color: black;'>Advertencia</h3>",unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; color: red;'>Advertencia</h2>",unsafe_allow_html=True)
+st.markdown(
 '''
+<style>p{color:white;}</style>
+<p>
 El Bitcoin es una nueva moneda experimental que está en desarrollo activo, que  con el tiempo ha estado creciendo con su uso constante. 
 Como tal,su valor en el futuro no se puede predecir con exactitud  debido a que existen 
 circunstancias externas que no son medibles, como son las sociales, politicas, globales o eventos
@@ -80,7 +83,8 @@ Es por eso que el modelo solo dara una buena estimacion bajo circunstancias norm
 
 Si aún no estas tan familiarizado con lo que es un Bitcoin o un Block chain puedes pulzar los botones 
 y te redirigiremos a una página con estos detalles.
-'''
+</p>
+''',unsafe_allow_html=True)
 cb1, mid1, cb2 = st.beta_columns([5,5,5])
 with cb1:
     if st.button('¿Que es un bitcoin?'):
@@ -97,8 +101,8 @@ with cb2:
         bloc = Div(text=html)
         st.bokeh_chart(bloc) 
 
-st.header("¿Cúanto cuesta un _bitcoin_?")
-
+#st.header("¿Cúanto cuesta un _bitcoin_?")
+st.markdown("<h2 style='text-align: center; color: green;'>¿Cúanto cuesta un bitcoin?</h2>",unsafe_allow_html=True)
 text = "Gracias a que la popularidad de esta divisa ha ido en aumento, son cada vez más personas las que invierten en ella, y esto aunado a los eventos sociales tiene como consecuencia la volatilidad de los precios, ya que sí en algún momento los precios bajan entonces hay una venta masiva."
 im_bit = "https://s1.eestatic.com/2017/12/07/actualidad/Actualidad_267738694_130078247_1024x576.jpg"
 
@@ -117,7 +121,8 @@ de esta moneda y la tomes en cuenta al momento de tomar una decisión.
 '''
 grafica_serie(df)
 
-st.header("El riesgo de la criptomoneda")
+st.markdown("<h2 style='text-align: center; color: green;'>El riesgo de la criptomoneda</h2>",unsafe_allow_html=True)
+#st.header("El riesgo de la criptomoneda")
 link = '[GitHub](http://github.com)'
 
 '''
@@ -141,13 +146,14 @@ el precio.
 Por ejemplo en la semana de del 26 al 30 de Diciembre de 2020, el precio del bitcoin aumento en un 
 14%, y el riesgo durante esa semana fue de 1301.112, es decir ....
 '''
-st.subheader('Porcentaje en el aumento de precios')
+st.markdown("<h2 style='text-align: center; color: green;'>Porcentaje en el aumento de precios</h2>",unsafe_allow_html=True)
+#st.subheader('Porcentaje en el aumento de precios')
 incremento(df)
-
-st.subheader('Riesgo en los precios')
+st.markdown("<h2 style='text-align: center; color: green;'>Riesgo en los precios</h2>",unsafe_allow_html=True)
+#st.subheader('Riesgo en los precios')
 get_riesgo(df)
-    
-st.header("¿Como obtener bitcoins?")
+st.markdown("<h2 style='text-align: center; color: green;'>¿Como obtener bitcoins?</h2>",unsafe_allow_html=True)
+#st.header("¿Como obtener bitcoins?")
 
 '''
 Si es que te has decidido a adquirir una de estas monedas, podrías preguntarte donde, 
