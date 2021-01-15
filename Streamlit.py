@@ -60,9 +60,11 @@ background-size: cover;
 </style>
 '''
 
+
+
 st.markdown(page_bg_img, unsafe_allow_html=True)
 #st.title("_Bitcoins_")
-st.markdown("<h1 style='color: black;'>Pricing de Bitcoin</h1>",unsafe_allow_html=True)
+st.markdown("<h1 style='color: white;'>Pricing de Bitcoin</h1>",unsafe_allow_html=True)
 
 st.markdown("<h2 style='text-align: center; color: red;'>Advertencia</h2>",unsafe_allow_html=True)
 st.markdown(
@@ -198,20 +200,26 @@ k = "Kenia Cisneros"
 r = "Rodrigo Diaz"
 #st.sidebar.markdown(r)
 #st.sidebar.markdown(k)
-barra = "Esta página te brindará información para ayudarte a decidir si invertir o no en un bitcoin, ofreciendote el historico de los precios, una aproximación del precio en el futuro y una medida del riesgo que implica invertir en este tipo de activos."
+
+
+
+# barra = ""
 st.sidebar.title ("Toma decisiónes de inversión inteligentes")
-st.sidebar.markdown(barra)
+
+barra="Esta página te brindará información para ayudarte a decidir si invertir o no en un bitcoin, ofreciendote el historico de los precios, una aproximación del precio en el futuro y una medida del riesgo que implica invertir en este tipo de activos."
+
+st.sidebar.markdown(f"<h4 style= color: balck;'>{barra}</h4>",unsafe_allow_html=True)
 
 esp = "La estimación del precio no es ''exacto'' debido a que existen circunstancias que afectan a esta divisa y no son medibles. Sin embargo, es útil saber una estimación aproximada del precio."
-st.sidebar.markdown(esp)
+st.sidebar.markdown(f"<h4 style= color: balck;'>{esp}</h4>",unsafe_allow_html=True)
 
 st.sidebar.title("¿Qué es el _bitcoin_?")
 bitcoin = "El Bitcoin es la primera divisa digital creada en 2009 por Satoshi Nakamoto. Como una solución al problema del doble gasto producido por los intermediarios en una transacción."
-st.sidebar.markdown(bitcoin)
+st.sidebar.markdown(f"<h4 style= color: balck;'>{bitcoin}</h4>",unsafe_allow_html=True)
 
 st.sidebar.title("¿Qué es el _riesgo_?")
-bitcoin = "Posibilidad de que el rendimiento real de una inversión difiera de lo esperado."
-st.sidebar.markdown(bitcoin)
+riesgo = "Posibilidad de que el rendimiento real de una inversión difiera de lo esperado."
+st.sidebar.markdown(f"<h4 style= color: balck;'>{riesgo}</h4>",unsafe_allow_html=True)
 
 #link = '[GitHub](http://github.com)'
 #st.sidebar.markdown(link, unsafe_allow_html=True)
