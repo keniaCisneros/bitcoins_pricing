@@ -1,22 +1,120 @@
 # ----------------------------------------------------------------------------- Bibliotecas
 import streamlit as st 
 import pandas as pd 
-import numpy as np 
 import statistics
 import plotly.express as px 
-from plotly.subplots import make_subplots 
-import plotly.graph_objects as go 
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from pandas import DataFrame
+from pandas import concat
 from bokeh.models.widgets import Div
+from tensorflow.keras.models import load_model
 # ----------------------------------------------------------------------------- Funciones
-
+model = load_model('modeloFinal.h5', compile = False)
 df = pd.read_csv('data_complete.csv')
+df.drop(['shangai_stock_exchange(USD)','petroleo(USD)','euro_stoxx50(USD)','dow(USD)'], axis=1, inplace = True)
+
+# convert series to supervised learning
+def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
+    """
+    Convierte un conjunto de series de tiempo en un conjunto de aprendizaje supervisado
+
+    Params:
+        data: secuencia de observaciones
+        n_in: tamaño de la ventana, es decir, 2 implica que el siguiente valor
+            se calculara con los dos anteriores
+        n_out: número de variables a predecir
+        dropnan: indica si se eliminarán los valores nulos
+    Returns:
+    Conjunto de datos de un problema de aprendizaje supervisado
+    """
+    n_vars = 1 if type(data) is list else data.shape[1]
+    df = DataFrame(data)
+    cols, names = list(), list()
+    # input sequence (t-n, ... t-1)
+    for i in range(n_in, 0, -1):
+        # shift
+        # se utiliza para desplazar el índice de DataFrame por un número 
+        # determinado de períodos con una frecuencia de tiempo opcional
+        cols.append(df.shift(i))
+        names += [('var%d(t-%d)' % (j+1, i)) for j in range(n_vars)]
+    # forecast sequence (t, t+1, ... t+n)
+    for i in range(0, n_out):
+        cols.append(df.shift(-i))
+        if i == 0:
+            names += [('var%d(t)' % (j+1)) for j in range(n_vars)]
+        else:
+            names += [('var%d(t+%d)' % (j+1, i)) for j in range(n_vars)]
+    # put it all together
+    agg = concat(cols, axis=1)
+    agg.columns = names
+    # drop rows with NaN values
+    if dropnan:
+        agg.dropna(inplace=True)
+    return agg
+
+def get_data(df, ventana):
+    '''
+    Transforma nuestros datos en un formato aceptable para la red separandolos en train y test
+
+    Params:
+      df: conjunto de datos 
+      ventana: número de días con el que se predecirá el siguiente
+    '''
+    n_cols = df.shape[1] - 1 # Numero de variables incluyendo la variable objetivo
+    entrenamiento = 800 #Cuantos dias de entrenamiento (restante sera para el conjunto test)
+    n_obs = ventana*n_cols
+    
+    
+    values = df.iloc[1082:,1:].values# Desde el primer dia del 2018
+    transformer = StandardScaler()
+    transformer.fit(values)
+    # se escalan los datos para que la red trabaje mejor
+    transformer_y = StandardScaler()
+    transformer_y.fit(df.iloc[1082:,-1].values.reshape(-1,1))
+
+    values = transformer.transform(values)
+    # obtenemos un datos para un problema supervisado
+    data = series_to_supervised(values, ventana,1 )
+    
+    train = data.iloc[:entrenamiento,:]
+    test = data.iloc[entrenamiento:,:]
+
+    train_X, train_y = train.iloc[:, :n_obs].values, train.iloc[:, -1].values
+    test_X, test_y = test.iloc[:, :n_obs].values, test.iloc[:, -1].values
+    
+    # modificamos las dimensiones del train y test para que tengan un formato
+    # (muestras, ventana, numero de variables)
+    train_X = train_X.reshape((train_X.shape[0], ventana, n_cols))
+    test_X = test_X.reshape((test_X.shape[0], ventana, n_cols))
+    return train_X, train_y, test_X, test_y,transformer,transformer_y
+
+def get_ultimo_dia(df, ventana,transformer,transformer_y):
+    '''
+    Params:
+      df: conjunto de datos 
+      ventana: número de días con el que se predecirá el siguiente
+    '''
+    n_cols = df.shape[1] - 1 # Numero de variables incluyendo la variable objetivo
+        
+    values = df.iloc[-ventana:,1:].values# Ultima ventana del dataset
+    # se escalan los datos para que la red trabaje mejor
+    values = transformer.transform(values)
+    
+    data= values.reshape(-1,n_cols)# se modifica su dimension para que quede coomo una ventana
+
+    data=data.reshape(1,3,n_cols)# se modifica la dimension para que quede como muestra, ventana, num_variables
+    return(data)
+    
+def predecir(x_ultimo,transformer_y,model):
+    y_pred= model.predict(x_ultimo)
+    y_pred_inv=transformer_y.inverse_transform(y_pred)
+    return y_pred_inv[0][0]
 
 def grafica_serie(df):
     df['date'] = df['date'].astype('datetime64')
     fig = px.line(df, x = "date", y = "BCHAIN-MKPRU (USD)") 
-    fig = px.area(df, x = "date", y = "BCHAIN-MKPRU (USD)")
-    plt.title("Title")
+    fig = px.area(df, x = "date", y = "BCHAIN-MKPRU (USD)", title = "Histórico del precio del Bitcoin")
     st.plotly_chart(fig)
     
 def incremento_percent(v1, v2):
@@ -37,7 +135,7 @@ def incremento(df):
     v1 = int(df.iloc[idx1,-1])
     v2 = int(df.iloc[idx2,-1]) 
     p = incremento_percent(v1, v2)
-    st.markdown(f"El incremento en el precio del Bitcoin de {col1} a {col2}, es {round(p,2)} %")
+    st.markdown(f"Incremento: {round(p,2)} %")
     
 def get_riesgo(df):
     dates = list(df['date'])
@@ -48,7 +146,27 @@ def get_riesgo(df):
     col2 = st.selectbox('Final:', dates[idx1 + 4:])
     idx2 = dates.index(col2)
     riesgo = round(statistics.stdev(df.iloc[idx1:idx2,-1]),3)
-    st.markdown(f"Riesgo de {col1} a {col2}, es {riesgo}")
+    st.markdown(f"Riesgo: {riesgo} USD")
+    
+def get_media(df):
+    dates = list(df['date'])
+    dates = [x.strftime('%Y-%m-%d') for x in dates]
+    st.markdown("Rango de fecha:")
+    col1 = st.selectbox('Inicio:  ', dates)
+    idx1 = dates.index(col1)
+    col2 = st.selectbox('Final:  ', dates[idx1 + 4:])
+    idx2 = dates.index(col2)
+    riesgo = round(df.iloc[idx1:idx2,-1].mean(),3)
+    st.markdown(f"Precio medio: {riesgo} USD")
+    
+def plot_xy(df, test_X, y_pred_inv):
+    fig = plt.figure(figsize=(6,5))
+    plt.plot(range(0,len(test_X)),df.iloc[-len(test_X):,-1],color="turquoise",label="Real")
+    plt.plot(range(0,len(test_X)),y_pred_inv, color="lightcoral",label="Predicha")
+    plt.xlabel("días")
+    plt.ylabel("USD")
+    plt.title("Predicción del último periodo")    
+    return fig
 
 # ----------------------------------------------------------------------------- Estructura de la página
 page_bg_img = '''
@@ -59,11 +177,7 @@ background-size: cover;
 }
 </style>
 '''
-
-
-
 st.markdown(page_bg_img, unsafe_allow_html=True)
-#st.title("_Bitcoins_")
 st.markdown("<h1 style='color: white;'>Pricing de Bitcoin</h1>",unsafe_allow_html=True)
 
 st.markdown("<h2 style='text-align: center; color: red;'>Advertencia</h2>",unsafe_allow_html=True)
@@ -96,7 +210,7 @@ with cb1:
         bit = Div(text=html)
         st.bokeh_chart(bit)
 with cb2:
-    if st.button('¿Que es un Bloch chain?'):
+    if st.button('¿Que es un Block chain?'):
         js = "window.open('https://economiatic.com/blockchain/')"  # New tab or window
         js = "window.location.href = 'https://economiatic.com/blockchain/'"  # Current tab
         html = '<img src onerror="{}">'.format(js)
@@ -104,7 +218,7 @@ with cb2:
         st.bokeh_chart(bloc) 
 
 #st.header("¿Cúanto cuesta un _bitcoin_?")
-st.markdown("<h2 style='text-align: center; color: green;'>¿Cúanto cuesta un bitcoin?</h2>",unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; color: yellow;'>¿Cúanto cuesta un bitcoin?</h2>",unsafe_allow_html=True)
 text = "Gracias a que la popularidad de esta divisa ha ido en aumento, son cada vez más personas las que invierten en ella, y esto aunado a los eventos sociales tiene como consecuencia la volatilidad de los precios, ya que sí en algún momento los precios bajan entonces hay una venta masiva."
 im_bit = "https://s1.eestatic.com/2017/12/07/actualidad/Actualidad_267738694_130078247_1024x576.jpg"
 
@@ -123,9 +237,7 @@ de esta moneda y la tomes en cuenta al momento de tomar una decisión.
 '''
 grafica_serie(df)
 
-st.markdown("<h2 style='text-align: center; color: green;'>El riesgo de la criptomoneda</h2>",unsafe_allow_html=True)
-#st.header("El riesgo de la criptomoneda")
-link = '[GitHub](http://github.com)'
+st.markdown("<h2 style='text-align: center; color: yellow;'>El riesgo de la criptomoneda</h2>",unsafe_allow_html=True)
 
 '''
 Un factor importante a considerar al momento de tomar una decisión es el riesgo en el tiempo sobre
@@ -145,18 +257,39 @@ con los esperados mostrando que tan alejados estan unos de otros. Puedes elegir 
 del que deseas saber el riesgo, igualmente podrías preguntarte en que porcentaje aúmento o disminuyó
 el precio.
 
-Por ejemplo en la semana de del 26 al 30 de Diciembre de 2020, el precio del bitcoin aumento en un 
-14%, y el riesgo durante esa semana fue de 1301.112, es decir ....
+Por ejemplo en la semana de del 25 al 31 de Diciembre de 2020, el precio del bitcoin aumento en un 
+34.34 %, y el riesgo durante esa semana fue de 2471.651, es decir los precios del bitcoin en esa
+semana estan alejados 2471.651 USD de la media aritmética de los mismos. Esto nos da una idea de que 
+tanto varían los precios durante un periodo de tiempo y con ayuda de la predicción al precio del bitcoin 
+podemos tener un panorama más claro de la situación.
 '''
-st.markdown("<h2 style='text-align: center; color: green;'>Porcentaje en el aumento de precios</h2>",unsafe_allow_html=True)
-#st.subheader('Porcentaje en el aumento de precios')
+st.markdown("<h2 style='text-align: center; color: orange;'>Porcentaje en el aumento de precios</h2>",unsafe_allow_html=True)
 incremento(df)
-st.markdown("<h2 style='text-align: center; color: green;'>Riesgo en los precios</h2>",unsafe_allow_html=True)
-#st.subheader('Riesgo en los precios')
-get_riesgo(df)
-st.markdown("<h2 style='text-align: center; color: green;'>¿Como obtener bitcoins?</h2>",unsafe_allow_html=True)
-#st.header("¿Como obtener bitcoins?")
 
+st.markdown("<h2 style='text-align: center; color: orange;'>Media aritmética del precio</h2>",unsafe_allow_html=True)
+get_media(df)
+
+st.markdown("<h2 style='text-align: center; color: orange;'>Riesgo en los precios</h2>",unsafe_allow_html=True)
+get_riesgo(df)
+
+st.markdown("<h2 style='text-align: center; color: yellow;'>Predicciones</h2>",unsafe_allow_html=True)
+train_X, train_y, test_X, test_y,transformer ,transformer_y = get_data(df, 3)    
+x_ultimo = get_ultimo_dia(df, 3, transformer, transformer_y)
+prediction = round(float(predecir(x_ultimo,transformer_y,model)),3)
+
+y_pred = model.predict(test_X)
+y_pred_inv = transformer_y.inverse_transform(y_pred)
+st.plotly_chart(plot_xy(df, test_X, y_pred_inv))
+
+'''
+Ya que la volatilidad en los precios del Bitcoin es muy alta, y debido a aquellas circunstancias no medibles
+antes mensionadas se predice el precio que tendrá el bitcoin el día siguiente, pues las predicciones en días posteriores
+podrían estar muy alejadas del valor real.
+'''
+if (st.button("Predecir")):
+    st.markdown(f"<h2 style='text-align: center; color: white;'>{prediction} USD</h2>",unsafe_allow_html=True)
+
+st.markdown("<h2 style='text-align: center; color: yellow;'>¿Como obtener bitcoins?</h2>",unsafe_allow_html=True)
 '''
 Si es que te has decidido a adquirir una de estas monedas, podrías preguntarte donde, 
 aquí te mostramos algunas páginas donde puedes adquirirlos. Son plataformas que cuentan
@@ -195,15 +328,16 @@ with c3:
         local = Div(text=html)
         st.bokeh_chart(local)
     
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
 # ----------------------------------------------------------------------------- Barra lateral
 k = "Kenia Cisneros"
 r = "Rodrigo Diaz"
 #st.sidebar.markdown(r)
 #st.sidebar.markdown(k)
 
-
-
-# barra = ""
 st.sidebar.title ("Toma decisiónes de inversión inteligentes")
 
 barra="Esta página te brindará información para ayudarte a decidir si invertir o no en un bitcoin, ofreciendote el historico de los precios, una aproximación del precio en el futuro y una medida del riesgo que implica invertir en este tipo de activos."
@@ -220,6 +354,3 @@ st.sidebar.markdown(f"<h4 style= color: balck;'>{bitcoin}</h4>",unsafe_allow_htm
 st.sidebar.title("¿Qué es el _riesgo_?")
 riesgo = "Posibilidad de que el rendimiento real de una inversión difiera de lo esperado."
 st.sidebar.markdown(f"<h4 style= color: balck;'>{riesgo}</h4>",unsafe_allow_html=True)
-
-#link = '[GitHub](http://github.com)'
-#st.sidebar.markdown(link, unsafe_allow_html=True)
